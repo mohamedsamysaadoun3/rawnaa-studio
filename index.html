@@ -159,7 +159,16 @@ const F = [{id:"mushaf",n:"المصحف",t:"﷽"},{id:"uthmani",n:"عثماني"
 
 // State
 let step=1, sur=null, start=1, end=7, rec="mp3q:20", font="mushaf";
-const tg=window.Telegram?.WebApp; if(tg){tg.ready();tg.expand()}
+const tg=window.Telegram?.WebApp;
+if(tg){
+    tg.ready();
+    tg.expand();
+    tg.MainButton.hide();
+    // Log for debugging
+    console.log('Studio ready, initData:', tg.initDataUnsafe?.user?.id);
+} else {
+    console.log('Not running in Telegram WebApp');
+}
 
 // ── Steps ────────────────────────────────────────
 function nextStep(){
@@ -252,8 +261,20 @@ function generate(){
 if(!sur)return;
 let btn=document.getElementById('nextBtn');btn.disabled=true;btn.textContent='⏳ جاري...';
 let data={action:"generate_reel",surah:sur,start_ayah:start,end_ayah:end,reciter:rec,font};
-if(tg){tg.sendData(JSON.stringify(data))}
-else{showToast('بيئة تطوير — تم: '+JSON.stringify(data));btn.disabled=false;btn.textContent='✨ أنشئ الريل'}
+if(tg){
+    try {
+        console.log('Sending data:', JSON.stringify(data));
+        tg.sendData(JSON.stringify(data));
+    } catch(e) {
+        console.error('sendData error:', e);
+        showToast('خطأ في الإرسال: '+e.message);
+        btn.disabled=false;
+        btn.textContent='✨ أنشئ الريل';
+    }
+} else {
+    showToast('بيئة تطوير — تم: '+JSON.stringify(data));
+    btn.disabled=false;btn.textContent='✨ أنشئ الريل';
+}
 }
 function showToast(m){let t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
 
